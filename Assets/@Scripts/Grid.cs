@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static UnityEditor.Progress;
 
 public class Grid : MonoBehaviour
 {
@@ -110,5 +112,18 @@ public class Grid : MonoBehaviour
             return false;
         else
             return true;
+    }
+
+    public void DisplayCost<T>(List<T> list) where T : IComparable<T>
+    {
+        if(typeof(T) == typeof(Node))
+        {
+            foreach (var node in list)
+            {
+                Node temp = node as Node;
+                Vector3 position = tilemap.CellToWorld(new Vector3Int(temp.gridX, temp.gridY, 0));
+                Handles.Label(position, temp.fCost.ToString());
+            }
+        }
     }
 }

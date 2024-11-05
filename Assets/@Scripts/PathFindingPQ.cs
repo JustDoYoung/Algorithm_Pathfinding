@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class PathFinding : MonoBehaviour
+public class PathFindingPQ : MonoBehaviour
 {
     Grid grid;
 
-    //PriorityQueue<Node> openSet = new PriorityQueue<Node>();
-    List<Node> openSet = new List<Node>();
+    PriorityQueue<Node> openSet = new PriorityQueue<Node>();
     HashSet<Node> closedSet = new HashSet<Node>();
 
     private void Start()
@@ -20,22 +19,12 @@ public class PathFinding : MonoBehaviour
 
     IEnumerator Findpath()
     {
-        openSet.Add(grid.StartCell);
-        //openSet.Enqueue(grid.StartCell);
+        openSet.Enqueue(grid.StartCell);
 
         while (openSet.Count > 0)
         {
             //openSet에서 최소값 추출
-            Node now = openSet[0];
-            //Node now = openSet.Dequeue();
-
-            foreach (var next in openSet)
-            {
-                if (now.fCost < next.fCost) continue;
-                if (now.fCost == next.fCost && now.hCost <= next.hCost) continue;
-
-                now = next;
-            }
+            Node now = openSet.Dequeue();
 
             //현재 목적지면 경로 확정하고 종료
             if (now == grid.EndCell)
@@ -44,13 +33,12 @@ public class PathFinding : MonoBehaviour
                 yield break;
             }
 
-            openSet.Remove(now);
             closedSet.Add(now);
 
-            yield return new WaitForSeconds(0.2f);
+            yield return new WaitForSeconds(0.3f);
 
             //grid에서 openSet 셀들 표시
-            foreach (var next in openSet)
+            foreach (var next in openSet.List)
                 grid.PaintTile(next.gridX, next.gridY, grid.GetTile("Openset"));
 
             //현재 경로 표시
@@ -75,7 +63,7 @@ public class PathFinding : MonoBehaviour
                     {
                         next.parent = now;
                         next.gCost = g;
-                        //openSet.Reposition(next);
+                        openSet.Reposition(next);
                     }
                 }
                 else
@@ -83,8 +71,7 @@ public class PathFinding : MonoBehaviour
                     next.gCost = g;
                     next.hCost = h;
                     next.parent = now;
-                    openSet.Add(next);
-                    //openSet.Enqueue(next);
+                    openSet.Enqueue(next);
                 }
             }
         }
@@ -94,7 +81,7 @@ public class PathFinding : MonoBehaviour
 
     void RetracePath(Node node)
     {
-        foreach(Node n in closedSet)
+        foreach (Node n in closedSet)
         {
             if (n == grid.StartCell || n == grid.EndCell) continue;
             grid.PaintTile(n.gridX, n.gridY, grid.GetTile("Done"));
@@ -108,7 +95,7 @@ public class PathFinding : MonoBehaviour
     {
         Node now = grid.EndCell;
 
-        foreach (var next in openSet)
+        foreach (var next in openSet.List)
             grid.PaintTile(next.gridX, next.gridY, grid.GetTile("Openset"));
 
         while (now != grid.StartCell)
@@ -123,7 +110,7 @@ public class PathFinding : MonoBehaviour
         int dx = Mathf.Abs(from.gridX - to.gridX);
         int dy = Mathf.Abs(from.gridY - to.gridY);
 
-        if(dx > dy)
+        if (dx > dy)
         {
             return 14 * dy + 10 * (dx - dy);
         }
@@ -133,6 +120,6 @@ public class PathFinding : MonoBehaviour
 
     protected void OnDrawGizmos()
     {
-        grid?.DisplayCost(openSet);
+        grid?.DisplayCost(openSet.List);
     }
 }
